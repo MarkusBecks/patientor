@@ -20,6 +20,8 @@ import HealthRatingBar from '../HealthRatingBar';
 
 import patientService from '../../services/patients';
 
+import { toast } from 'react-hot-toast';
+
 interface Props {
 	patients: Patient[];
 	setPatients: React.Dispatch<React.SetStateAction<Patient[]>>;
@@ -41,6 +43,7 @@ const PatientListPage = ({ patients, setPatients }: Props) => {
 			const patient = await patientService.create(values);
 			setPatients(patients.concat(patient));
 			setModalOpen(false);
+			toast.success(`Added new patient: ${patient.name}!`);
 		} catch (e: unknown) {
 			if (axios.isAxiosError(e)) {
 				if (e?.response?.data && typeof e?.response?.data === 'string') {

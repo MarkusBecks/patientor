@@ -5,11 +5,15 @@ import diagnoseService from '../../services/diagnoses';
 import { Gender, Patient, Diagnosis } from '../../types';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import EntryItem from './EntryItem';
+import EntryDetails from './EntryDetails';
+import { Button } from '@mui/material';
+import AddEntryForm from './AddEntryForm';
 
 const PatientPage = () => {
 	const [patient, setPatient] = useState<Patient | null>(null);
 	const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
+	const [showEntryForm, setShowEntryForm] = useState(false);
+	const [entryAdded, setEntryAdded] = useState(false);
 	const { id } = useParams<{ id: string }>();
 
 	useEffect(() => {
@@ -20,21 +24,25 @@ const PatientPage = () => {
 					const patientData = await patientService.get(id);
 					setPatient(patientData);
 				} catch (error) {
-					console.error('error fetching patient', error);
+					console.error(error);
 				}
 			};
+
 			getPatient();
 			const getDiagnoses = async () => {
 				try {
 					const diagnosesData = await diagnoseService.getAll();
 					setDiagnoses(diagnosesData);
 				} catch (error) {
-					console.error('error fetching diagnoses', error);
+					console.error(error);
 				}
 			};
 			getDiagnoses();
+
+			// Set entryAdded back to false after fetching patient data
+			setEntryAdded(false);
 		}
-	}, [id]);
+	}, [id, entryAdded]);
 
 	const getGenderIcon = () => {
 		if (patient) {
@@ -60,12 +68,28 @@ const PatientPage = () => {
 			</div>
 			<div>occupation: {patient.occupation} </div>
 			<div>ssn: {patient.ssn ? patient.ssn : 'nothing to show here'} </div>
-			<h2>entries</h2>
+			{showEntryForm && (
+				<AddEntryForm
+					patient={patient}
+					setShowEntryForm={setShowEntryForm}
+					setEntryAdded={setEntryAdded}
+				/>
+			)}
+			<h2 style={{ marginTop: 50 }}>entries</h2>
 			<div>
 				{patient.entries.map((entry) => (
-					<EntryItem key={entry.id} entry={entry} diagnoses={diagnoses} />
+					<EntryDetails key={entry.id} entry={entry} diagnoses={diagnoses} />
 				))}
 			</div>
+			{!showEntryForm && (
+				<Button
+					variant="contained"
+					color="primary"
+					onClick={() => setShowEntryForm(true)}
+				>
+					Add new entry
+				</Button>
+			)}
 		</>
 	) : (
 		<div>Loading patient data...</div>
